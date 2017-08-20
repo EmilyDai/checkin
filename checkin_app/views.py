@@ -56,8 +56,7 @@ class TagList(APIView):
     def post(self, request):
         data = request.data
         tag = Tag.objects.create(**data)
-        return Response(TagSerializer(tag).data,
-            status=status.HTTP_201_CREATED)
+        return Response(TagSerializer(tag).data)
 
 class TagDetail(generics.RetrieveDestroyAPIView):
     queryset = Tag.objects.all()
@@ -79,8 +78,7 @@ class RuleList(APIView):
     def post(self, request):
         data = request.data
         tag = Rule.objects.create(**data)
-        return Response(RuleSerializer(tag).data,
-            status=status.HTTP_201_CREATED)
+        return Response(RuleSerializer(tag).data)
 
 class RuleDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Rule.objects.all()
@@ -89,7 +87,7 @@ class RuleDetail(generics.RetrieveUpdateDestroyAPIView):
     def put(self, request, pk):
         rule = Rule.objects.get(pk=pk)
         for k, v in request.data.items():
-            setattr(tag, k, v)
+            setattr(rule, k, v)
         rule.save()
         return Response(RuleSerializer(rule).data)
 
@@ -102,12 +100,21 @@ class ProjectList(APIView):
     def post(self, request):
         data = request.data
         project = Project.objects.create(**data)
-        return Response(ProjectSerializer(project).data,
-            status=status.HTTP_201_CREATED)
+        return Response(ProjectSerializer(project).data)
 
 class ProjectDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
+
+    def put(self, request, pk, format=None):
+        try:
+            project = Project.objects.get(pk=pk)
+        except Project.DoesNotExist:
+            return Http404
+        for k, v in request.data.items():
+            setattr(project, k, v)
+        project.save()
+        return Response(ProjectSerializer(project).data)
 
 class UserProjectList(APIView):
     def get(self, request):
