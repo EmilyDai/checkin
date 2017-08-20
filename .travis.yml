@@ -4,7 +4,7 @@ python:
   - 3.5
 
 env:
-  - DJANGO=Django==1.11
+  - DJANGO_VERSION=1.10
 
 install:
   - pip install -q Django==$DJANGO_VERSION flake8 coverage
