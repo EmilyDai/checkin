@@ -4,15 +4,15 @@ python:
   - 3.5
 
 env:
-  - DJANGO_VERSION=1.10
+  - DJANGO_VERSION=1.11
 
 install:
-  - pip install -q Django==$DJANGO_VERSION flake8 coverage
+  - pip install -q Django==$DJANGO_VERSION flake8 coverage djangorestframework
 
 script:
 #  - flake8
   - python manage.py test
-  - coverage run --source=registration setup.py test
+#  - coverage run --source=registration setup.py test
 
 after_success:
   - coveralls --verbose
