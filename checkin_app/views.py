@@ -159,24 +159,64 @@ class RecordDetail(generics.RetrieveUpdateDestroyAPIView):
             record = Record.objects.get(pk=pk, user_id=request.user.id)
         except Record.DoesNotExist:
             return Http404
-        serializer = RecordSerializer(record, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        for k, v in request.data.items():
+            setattr(record, k, v)
+        record.save()
+        return Response(RecordSerializer(record).data)
 
-class DiaryList(generics.ListCreateAPIView):
-    queryset = Diary.objects.all()
-    serializer_class = DiarySerializer
+class DiaryList(APIView):
+    def get(self, request):
+        diaries = Diary.objects.filter(user_id=request.user.id)
+        s_diaries = DiarySerializer(diaries, many=True)
+        return Response(s_diaries.data)
+
+    def post(self, request):
+        data = request.data
+        data['user_id'] = request.user.id
+        diary = Diary.objects.create(**data)
+        return Response(DiarySerializer(diary).data,
+            status=status.HTTP_201_CREATED)
 
 class DiaryDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Diary.objects.all()
     serializer_class = DiarySerializer
 
-class CommentList(generics.ListCreateAPIView):
-    queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
+    def put(self, request, pk, format=None):
+        try:
+            diary = Diary.objects.get(pk=pk, user_id=request.user.id)
+        except Diary.DoesNotExist:
+            return Http404
+        for k, v in request.data.items():
+            setattr(diary, k, v)
+        diary.save()
+        return Response(RecordSerializer(diary).data)
+
+class CommentList(APIView):
+    def get(self, request):
+        data = request.query_params
+        print('aaa')
+        print(data)
+        comments = Comment.objects.filter(diary_id=data['diary_id'])
+        s_comments = CommentSerializer(comments, many=True)
+        return Response(s_comments.data)
+
+    def post(self, request):
+        data = request.data
+        data['user_id'] = request.user.id
+        comment = Comment.objects.create(**data)
+        return Response(CommentSerializer(comment).data,
+            status=status.HTTP_201_CREATED)
 
 class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+
+    def put(self, request, pk, format=None):
+        try:
+            comment = Comment.objects.get(pk=pk)
+        except Comment.DoesNotExist:
+            return Http404
+        for k, v in request.data.items():
+            setattr(comment, k, v)
+        comment.save()
+        return Response(CommentSerializer(comment).data)
