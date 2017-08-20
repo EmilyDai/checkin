@@ -31,6 +31,7 @@ before_script:
 
 script:
 #  - flake8
+  - python manage.py test
   - coverage run --source=registration setup.py test
 
 after_success:
