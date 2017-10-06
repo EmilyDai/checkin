@@ -7,8 +7,6 @@ urlpatterns = [
 	url(r'^customusers/(?P<pk>[0-9]+)/$', views.CustomUserDetail.as_view()),
 	url(r'^tags/$', views.TagList.as_view()),
     url(r'^tags/(?P<pk>[0-9]+)/$', views.TagDetail.as_view()),
-	url(r'^rules/$', views.RuleList.as_view()),
-    url(r'^rules/(?P<pk>[0-9]+)/$', views.RuleDetail.as_view()),
 	url(r'^projects/$', views.ProjectList.as_view()),
     url(r'^projects/(?P<pk>[0-9]+)/$', views.ProjectDetail.as_view()),
 	url(r'^userprojects/$', views.UserProjectList.as_view()),

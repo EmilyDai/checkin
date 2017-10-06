@@ -7,19 +7,19 @@ from rest_framework import status
 from rest_framework.response import Response
 from datetime import date
 from checkin_app.serializers import (UserSerializer, TagSerializer,
-    RuleSerializer, ProjectSerializer, RecordSerializer, DiarySerializer,
+    ProjectSerializer, RecordSerializer, DiarySerializer,
     CommentSerializer, CustomUserSerializers, UserProjectSerializer)
-from checkin_app.models import (Tag, Rule, CustomUser, Project, Record, Diary,
+from checkin_app.models import (Tag, CustomUser, Project, Record, Diary,
     Comment, UserProject)
 
 
 class UserList(generics.ListCreateAPIView):
-    queryset = User.objects.all()
+    queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
 
 
 class UserDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = User.objects.all()
+    queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
 
 class CustomUserDetail(APIView):
@@ -69,27 +69,6 @@ class TagDetail(generics.RetrieveDestroyAPIView):
         tag.save()
         return Response(TagSerializer(tag).data)
 
-class RuleList(APIView):
-    def get(self, request):
-        rules = Rule.objects.all()
-        s_rules = RuleSerializer(rules, many=True)
-        return Response(s_rules.data)
-
-    def post(self, request):
-        data = request.data
-        tag = Rule.objects.create(**data)
-        return Response(RuleSerializer(tag).data)
-
-class RuleDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Rule.objects.all()
-    serializer_class = RuleSerializer
-
-    def put(self, request, pk):
-        rule = Rule.objects.get(pk=pk)
-        for k, v in request.data.items():
-            setattr(rule, k, v)
-        rule.save()
-        return Response(RuleSerializer(rule).data)
 
 class ProjectList(APIView):
     def get(self, request):
@@ -130,8 +109,8 @@ class UserProjectList(APIView):
             status=status.HTTP_201_CREATED)
 
 class UserProjectDetail(generics.DestroyAPIView):
-    queryset = Rule.objects.all()
-    serializer_class = RuleSerializer
+    queryset = UserProject.objects.all()
+    serializer_class = UserProjectSerializer
 
 class RecordList(APIView):
     def get(self, request):

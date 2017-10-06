@@ -1,16 +1,28 @@
 from django.db import models
 from django.utils.functional import cached_property
 from django.utils import timezone
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 from checkin_app import constant
 
 
-class CustomUser(User):
+class CustomUser(AbstractUser):
     nickname = models.CharField(max_length=256, null=False, default='')
     description = models.TextField(max_length=256, default="", blank=True)
     image  = models.CharField(max_length=256, null=False, default='')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    @cached_property
+    def projects(self):
+        return UserProject.objects.filter(user_id=self.pk)
+
+    @cached_property
+    def records(self):
+        return Records.objects.filter(user_id=self.pk)
+
+    @cached_property
+    def comments(self):
+        return Comment.objects.filter(comment_to=self.pk)
 
 
 class Tag(models.Model):
@@ -18,7 +30,10 @@ class Tag(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-class Rule(models.Model):
+class Project(models.Model):
+    name = models.CharField(max_length=256, null=False, default='')
+    notice = models.CharField(max_length=512)
+    tag = models.ForeignKey(Tag)
     duration = models.IntegerField(default=0)
     frequency = models.CharField(max_length=256, null=False, default='')
     remedy_pemission = models.BooleanField(default=False)
@@ -26,34 +41,24 @@ class Rule(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-class Project(models.Model):
-    name = models.CharField(max_length=256, null=False, default='')
-    notice = models.CharField(max_length=512)
-    tag_id = models.PositiveIntegerField()
-    rule_id = models.PositiveIntegerField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
     @cached_property
     def cached_tag(self):
-        return cache.get_model(Tag, pk=self.tag_id)
-
-    @cached_property
-    def cached_rule(self):
-        return cache.get_model(Rule, pk=self.rule_id)
+        return Tag.objects.get(pk=self.tag_id)
 
 class UserProject(models.Model):
     user_id = models.BigIntegerField(db_index=True)
-    project_id = models.PositiveIntegerField()
+    project = models.ForeignKey(Project)
+    status = models.CharField(max_length=64,
+                              choices=constant.STATUS_CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
 class Record(models.Model):
     user_id = models.BigIntegerField(db_index=True)
-    project_id = models.PositiveIntegerField(db_index=True)
+    project = models.ForeignKey(Project)
     checkin_date = models.DateField()
     checkin_time = models.DateTimeField(default=timezone.now)
-    num_checkin_days = models.IntegerField(default=0, db_index=True)
+    num_checkin_days = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -61,29 +66,30 @@ class Record(models.Model):
         unique_together = ("user_id", "checkin_date")
         ordering = ['-created_at']
 
-    @property
-    def cached_user(self):
-        return cache.get_model(User, pk=self.user_id)
+    @cached_property
+    def cached_project(self):
+        return Project.objects.get(pk=self.project_id)
 
 class Diary(models.Model):
     user_id = models.BigIntegerField(db_index=True)
-    record_id = models.PositiveIntegerField()
+    record = models.ForeignKey(Record)
     name = models.CharField(max_length=256, null=False, default='')
     content = models.TextField(default='')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    @property
+    @cached_property
     def cached_record(self):
-        return cache.get_model(Record, pk=self.record_id)
+        return Record.objects.get(pk=self.record_id)
 
 class Comment(models.Model):
-    user_id = models.BigIntegerField()
-    diary_id = models.PositiveIntegerField()
+    user_id = models.BigIntegerField(db_index=True)
+    comment_to = models.BigIntegerField(db_index=True)
+    diary = models.ForeignKey(Diary)
     content = models.TextField(default='')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    @property
+    @cached_property
     def cached_diary(self):
-        return cache.get_model(Diary, pk=self.diary_id)
+        return Diary.objects.get(pk=self.diary_id)

@@ -22,6 +22,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'bys+0%$**4en44)d84!o=gyzp&dn299a8(nq16ay)esk%--b=d'
 
+AUTH_USER_MODEL = 'checkin_app.CustomUser'
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
