@@ -31,27 +31,25 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class UserProjectSerializer(serializers.ModelSerializer):
+    project = ProjectSerializer()
     class Meta:
         model = UserProject
-        fields = ('id', 'project_id', 'user_id', 'created_at', 'updated_at')
-        read_only_fields = ('id', 'created_at', 'updated_at')
+        fields = "__all__"
 
 class RecordSerializer(serializers.ModelSerializer):
+    project = ProjectSerializer()
     class Meta:
         model = Record
-        fields = ('id', 'user_id', 'project_id', 'checkin_date', 'checkin_time',
-                  'num_checkin_days', 'created_at', 'updated_at')
-        read_only_fields = ('id', 'created_at', 'updated_at')
+        fields = "__all__"
 
 class DiarySerializer(serializers.ModelSerializer):
+    record = RecordSerializer()
     class Meta:
         model = Diary
-        fields = ('id', 'user_id', 'record_id', 'name', 'content', 'created_at',
-            'updated_at')
-        read_only_fields = ('id', 'created_at', 'updated_at')
+        fields = "__all__"
 
 class CommentSerializer(serializers.ModelSerializer):
+    diary = DiarySerializer
     class Meta:
         model = Comment
-        fields = ('id', 'user_id', 'diary_id', 'content', 'created_at', 'updated_at')
-        read_only_fields = ('id', 'created_at', 'updated_at')
+        fields = "__all__"

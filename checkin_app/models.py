@@ -49,7 +49,8 @@ class UserProject(models.Model):
     user_id = models.BigIntegerField(db_index=True)
     project = models.ForeignKey(Project)
     status = models.CharField(max_length=64,
-                              choices=constant.STATUS_CHOICES)
+                              choices=constant.STATUS_CHOICES,
+                              null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

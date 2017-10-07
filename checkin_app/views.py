@@ -11,6 +11,7 @@ from checkin_app.serializers import (UserSerializer, TagSerializer,
     CommentSerializer, CustomUserSerializers, UserProjectSerializer)
 from checkin_app.models import (Tag, CustomUser, Project, Record, Diary,
     Comment, UserProject)
+from checkin_app import constant
 
 
 class UserList(generics.ListCreateAPIView):
@@ -102,20 +103,32 @@ class ProjectDetail(generics.RetrieveUpdateDestroyAPIView):
 
 class UserProjectList(APIView):
     def get(self, request):
-        projects = UserProject.objects.filter(user_id=request.user.id)
+        projects = UserProject.objects.filter(user_id=request.user.id,
+            status=constant.HAVE_JOINED)
         return Response(UserProjectSerializer(projects, many=True).data)
 
     def post(self, request):
         data = request.data
         project_id = data['project_id']
         u_project = UserProject.objects.create(project_id=project_id,
-            user_id=request.user.id)
+            user_id=request.user.id,
+            status=constant.HAVE_JOINED)
         return Response(UserProjectSerializer(u_project).data,
             status=status.HTTP_201_CREATED)
 
-class UserProjectDetail(generics.DestroyAPIView):
+class UserProjectDetail(generics.RetrieveUpdateAPIView):
     queryset = UserProject.objects.all()
     serializer_class = UserProjectSerializer
+
+    def put(self, request, pk, format=None):
+        try:
+            u_project = UserProject.objects.get(pk=pk)
+        except UserProject.DoesNotExist:
+            return Http404
+        for k, v in request.data.items():
+            setattr(u_project, k, v)
+        u_project.save()
+        return Response(UserProjectSerializer(u_project).data)
 
 class RecordList(APIView):
     def get(self, request):
@@ -125,6 +138,16 @@ class RecordList(APIView):
 
     def post(self, request):
         data = request.data
+        project_id = data.get("project_id", None)
+        if not project_id:
+            return Http404
+        try:
+            print('abs')
+            u_project = UserProject.objects.get(user_id=request.user.id,
+                project_id=data['project_id'])
+        except UserProject.DoesNotExist:
+            print('nnn')
+            return Http404
         data['checkin_date'] = date.today()
         data['user_id'] = request.user.id
         try:
@@ -157,7 +180,22 @@ class RecordDetail(generics.RetrieveUpdateDestroyAPIView):
 
 class DiaryList(APIView):
     def get(self, request):
-        diaries = Diary.objects.filter(user_id=request.user.id)
+        data = request.query_params
+        print(data)
+        print('test')
+        record_id = data.get('record_id', None)
+        project_id = data.get('project_id', None)
+        if record_id:
+            print('nj')
+
+            diaries = Diary.objects.filter(user_id=request.user.id,
+                record_id=record_id)
+            print(diaries)
+        elif project_id:
+            records = Record.objects.filter(project_id=project_id)
+            diaries = Diary.objects.filter(record__in=records)
+        else:
+            diaries = Diary.objects.filter(user_id=request.user.id)
         s_diaries = DiarySerializer(diaries, many=True)
         return Response(s_diaries.data)
 
@@ -185,9 +223,14 @@ class DiaryDetail(generics.RetrieveUpdateDestroyAPIView):
 class CommentList(APIView):
     def get(self, request):
         data = request.query_params
-        print('aaa')
-        print(data)
-        comments = Comment.objects.filter(diary_id=data['diary_id'])
+        diary_id = data.get('diary_id', None)
+        comment_to = data.get('comment_to', None)
+        if diary_id:
+            comments = Comment.objects.filter(diary_id=diary_id)
+        elif comment_to:
+            comments = Comment.objects.filter(comment_to=request.user.id)
+        else:
+            comments = Comment.objects.filter(user_id=request.user.id) 
         s_comments = CommentSerializer(comments, many=True)
         return Response(s_comments.data)
 
