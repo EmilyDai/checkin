@@ -72,7 +72,12 @@ class TagDetail(generics.RetrieveDestroyAPIView):
 
 class ProjectList(APIView):
     def get(self, request):
-        projects = Project.objects.all()
+        data = request.query_params
+        tag_id = data.get('tag_id', None)
+        if tag_id:
+            projects = Project.objects.filter(tag_id=tag_id)
+        else:
+            projects = Project.objects.all()
         s_projects = ProjectSerializer(projects, many=True)
         return Response(s_projects.data)
 

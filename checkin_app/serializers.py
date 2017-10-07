@@ -25,11 +25,10 @@ class TagSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'name', 'created_at', 'updated_at')
 
 class ProjectSerializer(serializers.ModelSerializer):
+    tag = TagSerializer()
     class Meta:
         model = Project
-        fields = ('id', 'name', 'notice', 'tag_id', 'created_at',
-            'updated_at')
-        read_only_fields = ('id', 'created_at', 'updated_at')
+        fields = "__all__"
 
 class UserProjectSerializer(serializers.ModelSerializer):
     class Meta:

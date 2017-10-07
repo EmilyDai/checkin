@@ -8,7 +8,7 @@ from checkin_app import constant
 class CustomUser(AbstractUser):
     nickname = models.CharField(max_length=256, null=False, default='')
     description = models.TextField(max_length=256, default="", blank=True)
-    image  = models.CharField(max_length=256, null=False, default='')
+    image  = models.ImageField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -34,7 +34,7 @@ class Project(models.Model):
     name = models.CharField(max_length=256, null=False, default='')
     notice = models.CharField(max_length=512)
     tag = models.ForeignKey(Tag)
-    duration = models.IntegerField(default=0)
+    duration = models.IntegerField(default=0, null=True)
     frequency = models.CharField(max_length=256, null=False, default='')
     remedy_pemission = models.BooleanField(default=False)
     diary_need = models.BooleanField(default=False)
@@ -84,7 +84,7 @@ class Diary(models.Model):
 
 class Comment(models.Model):
     user_id = models.BigIntegerField(db_index=True)
-    comment_to = models.BigIntegerField(db_index=True)
+    comment_to = models.BigIntegerField(db_index=True, null=True)
     diary = models.ForeignKey(Diary)
     content = models.TextField(default='')
     created_at = models.DateTimeField(auto_now_add=True)
